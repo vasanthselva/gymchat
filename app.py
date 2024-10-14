@@ -14,8 +14,7 @@ nltk.download('wordnet')
 app = Flask(__name__)
 mydb = mysql.connector.connect(host="localhost", user="root", password="", database="bot")
 mycursor = mydb.cursor() 
-#USERNAME = 'admin'
-#PASSWORD = '1234'
+
 # Load the trained model and other necessary files
 model = load_model('GYM_model.h5')
 words = pickle.load(open('words.pkl', 'rb'))
@@ -59,72 +58,6 @@ def predict_class(sentence, model):
     for r in results:
         return_list.append({"intent": classes[r[0]], "probability": str(r[1])})
     return return_list
-
-@app.route('/')
-def login():
-    return render_template('login.html')
-
-@app.route('/loginpost', methods=['POST', 'GET'])
-def userloginpost():
-    global data1
-    if request.method == 'POST':
-        data1 = request.form.get('email')
-        data2 = request.form.get('password')
-        
-        print("email:", data1)  # Debug statement
-        print("Password:", data2)  # Debug statement
-
-        if data2 is None:
-            return render_template('login.html', msg='Password not provided')
-
-        sql = "SELECT * FROM `users` WHERE `email` = %s AND `password` = %s"
-        val = (data1, data2)
-
-        try:
-            mycursor.execute(sql, val)
-            account = mycursor.fetchone()  # Fetch one row
-
-            if account:
-                # Consume remaining results
-                mycursor.fetchall()
-                mydb.commit()
-                return render_template('index.html')
-            else:
-                return render_template('login.html', msg='Invalid username or password')
-        except mysql.connector.Error as err:
-            print("Error:", err)  # Debug statement
-            flash('An error occurred. Please try again.', 'error')
-            return render_template('login.html')
-
-            return redirect(url_for('login'))
-
-@app.route('/NewUser')
-def newuser():
-    return render_template('register.html')
-
-@app.route('/reg', methods=['POST', 'GET'])
-def register():
-    if request.method == 'POST':
-       
-        uname = request.form.get('uname')
-        
-        email = request.form.get('email')
-        
-        age = request.form.get('age')
-        password = request.form.get('psw')
-        gender = request.form.get('gender')
-        symptoms = request.form.get('symptoms')
-       
-
-        # Update the SQL query to include symptoms and address
-        sql = "INSERT INTO users (uname, email, age, password, gender, symptoms) VALUES (%s, %s, %s, %s, %s, %s)"
-        val = (uname, email, age, password, gender, symptoms)
-        
-        mycursor.execute(sql, val)
-        mydb.commit()
-        return render_template('login.html')
-    else:
-        return render_template('register.html')
 
 @app.route('/index')
 def index():
